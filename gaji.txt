@@ -1,0 +1,45 @@
+foreach ($produk_array as $karyawan) {
+			$nama_karyawan = $delivery;
+			$gaji = $karyawan['gaji'];
+		
+			// Periksa apakah ada nama karyawan yang valid
+			if (!empty($nama_karyawan)) {
+				// Periksa apakah ada pesanan pada tanggal yang sama
+				$existing_order_on_same_date = $this->db->get_where('gaji_karyawan', array('tgl' => $tanggal_pesan))->row();
+		
+				if ($existing_order_on_same_date) {
+					// Jika ada pesanan pada tanggal yang sama, tambahkan gajinya
+					$existing_detail_gaji = $this->db->get_where('gaji_karyawan', array('nama_karyawan' => $nama_karyawan, 'tgl' => $tanggal_pesan))->row();
+		
+					if ($existing_detail_gaji) {
+						// Jika sudah ada, update gajinya
+						$new_gaji = $existing_detail_gaji->gaji + $gaji;
+		
+						$data_detail = array(
+							'gaji' => $new_gaji,
+						);
+						$this->db->where('nama_karyawan', $nama_karyawan);
+						$this->db->where('tgl', $tanggal_pesan);
+						$this->db->update('gaji_karyawan', $data_detail);
+					} else {
+						// Jika belum ada, tambahkan data baru
+						$data_detail = array(
+							'nama_karyawan' => $delivery,
+							'tgl' => $tanggal_pesan,
+							'gaji' => $gaji,
+							'bulan' => konversiNamaBulan(date('F', strtotime($tanggal_pesan))) // Menyimpan nilai bulan
+						);
+						$this->Gaji_model->simpan_detail_gaji($data_detail);
+					}
+				} else {
+					// Jika tidak ada pesanan pada tanggal yang sama, buat entri baru
+					$data_detail = array(
+						'nama_karyawan' => $delivery,
+						'tgl' => $tanggal_pesan,
+						'gaji' => $gaji,
+						'bulan' => konversiNamaBulan(date('F', strtotime($tanggal_pesan))) // Menyimpan nilai bulan
+					);
+					$this->Gaji_model->simpan_detail_gaji($data_detail);
+				}
+			}
+		}
